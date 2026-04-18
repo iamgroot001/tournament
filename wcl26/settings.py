@@ -16,8 +16,6 @@ SECRET_KEY = os.environ.get(
     'django-insecure-vsna!v9j*o*6y@l%cuvpx)nez_917o#^@ss4lz-051(-=-)yv3'
 )
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
-# Temporarily set to True to find 500 error cause on Vercel
-DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.vercel.app').split(',')
 
 # Secure cookies in production
@@ -117,7 +115,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
     'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
 }
 
