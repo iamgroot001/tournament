@@ -211,6 +211,9 @@ class MatchAdmin(admin.ModelAdmin):
         ('Team 2 Score', {
             'fields': ('team2_total', 'team2_overs', 'team2_wickets'),
         }),
+        ('Media & Links', {
+            'fields': ('video_url',)
+        }),
         ('Auto-Computed (override if needed)', {
             'fields': ('status', 'winner', 'batting_first'),
             'classes': ('collapse',),

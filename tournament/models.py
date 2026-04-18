@@ -204,6 +204,8 @@ class Match(models.Model):
         help_text="Which team batted first. Set automatically if left blank on completed matches."
     )
 
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Link to YouTube match video")
+
     class Meta:
         ordering = ['stage', 'match_number']
         verbose_name_plural = 'Matches'
