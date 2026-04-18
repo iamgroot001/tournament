@@ -16,23 +16,20 @@
 <!-- Tournament Stats -->
 <section class="stats-grid" id="stats-grid">
     <div class="stat-card">
-        <span class="stat-card__icon">👥</span>
-        <span class="stat-card__value" data-target="{{ total_teams }}">0</span>
+        <span class="stat-card__value" data-counter="{{ total_teams }}">0</span>
         <span class="stat-card__label">Teams</span>
     </div>
     <div class="stat-card">
-        <span class="stat-card__icon">🏏</span>
-        <span class="stat-card__value" data-target="{{ total_matches }}">0</span>
+        <span class="stat-card__value" data-counter="{{ total_matches }}">0</span>
         <span class="stat-card__label">Total Matches</span>
     </div>
     <div class="stat-card">
-        <span class="stat-card__icon">✅</span>
-        <span class="stat-card__value" data-target="{{ completed_matches }}">0</span>
+        <span class="stat-card__value" data-counter="{{ completed_matches }}">0</span>
         <span class="stat-card__label">Completed</span>
     </div>
     <div class="stat-card">
         <span class="stat-card__icon">📍</span>
-        <span class="stat-card__value stat-card__value--text">{{ current_stage }}</span>
+        <span class="stat-card__value stat-card__value--text" style="font-size: 1.5rem;">{{ current_stage }}</span>
         <span class="stat-card__label">Current Stage</span>
     </div>
 </section>
