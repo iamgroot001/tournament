@@ -99,22 +99,7 @@
     </section>
     {% endif %}
 
-    <!-- Section Divider -->
-    {% if gd.upcoming_matches %}
-    <div class="section-divider"></div>
-
-    <!-- Upcoming Matches -->
-    <section class="section">
-        <h2 class="section__title">Upcoming Fixtures</h2>
-        <div class="match-grid">
-            {% for match in gd.upcoming_matches %}
-                {% include "tournament/partials/_match_card.html" with match=match %}
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if not gd.entries and not gd.completed_matches and not gd.upcoming_matches %}
+    {% if not gd.entries and not gd.completed_matches %}
     <section class="section" style="text-align: center; padding: 2rem;">
         <p style="color: var(--text-muted);">No teams or fixtures added to {{ gd.group.name }} yet.</p>
     </section>
@@ -170,19 +155,11 @@
 </section>
 {% endif %}
 
-{% if upcoming_matches %}
-<div class="section-divider"></div>
-<section class="section">
-    <h2 class="section__title">Upcoming Fixtures</h2>
-    <div class="match-grid">
-        {% for match in upcoming_matches %}
-            {% include "tournament/partials/_match_card.html" with match=match %}
-        {% endfor %}
     </div>
 </section>
 {% endif %}
 
-{% if not entries and not completed_matches and not upcoming_matches %}
+{% if not entries and not completed_matches %}
 <section class="section" style="text-align: center; padding: 4rem 2rem;">
     <p style="font-size: 3rem; margin-bottom: 1rem;">{{ stage.emoji }}</p>
     <h2 style="margin-bottom: 0.5rem;">{{ stage.name }} — Coming Soon</h2>

@@ -9,14 +9,16 @@
     </div>
 
     <!-- Stage Filter Pills -->
-    <div class="stage-tabs" style="margin-top: 1.5rem; justify-content: flex-start;">
+    <div class="tabs" style="margin-top: 1.5rem; justify-content: flex-start; border: none; background: transparent; padding: 0;">
         <a href="{% url 'tournament:matches_list' %}" 
-           class="stage-tab {% if not active_stage_slug %}stage-tab--active{% endif %}">
+           class="tab-btn {% if not active_stage_slug %}tab-btn--active{% endif %}"
+           style="text-decoration: none; text-align: center;">
            All Matches
         </a>
         {% for stage in tournament_stages %}
         <a href="{% url 'tournament:matches_list' %}?stage={{ stage.slug }}" 
-           class="stage-tab {% if active_stage_slug == stage.slug %}stage-tab--active{% endif %}">
+           class="tab-btn {% if active_stage_slug == stage.slug %}tab-btn--active{% endif %}"
+           style="text-decoration: none; text-align: center;">
            {{ stage.name }}
         </a>
         {% endfor %}
