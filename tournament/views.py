@@ -95,7 +95,7 @@ def dashboard(request):
     recent_matches = Match.objects.filter(
         stage__tournament=tournament,
         status='completed',
-    ).select_related('team1', 'team2', 'winner', 'batting_first', 'stage', 'group').order_by('-match_number')[:6]
+    ).select_related('team1', 'team2', 'winner', 'batting_first', 'stage', 'group').order_by('-match_number')[:3]
 
     # Top teams (from first stage's points table)
     first_stage = stages.first()
