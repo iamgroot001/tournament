@@ -1,0 +1,53 @@
+{% extends "tournament/base.html" %}
+
+{% block title %}All Matches{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="card__header">
+        <h2 class="section__title" style="margin-bottom: 0;">🗓️ Tournament Fixtures</h2>
+    </div>
+
+    <!-- Stage Filter Pills -->
+    <div class="stage-tabs" style="margin-top: 1.5rem; justify-content: flex-start;">
+        <a href="{% url 'tournament:matches_list' %}" 
+           class="stage-tab {% if not active_stage_slug %}stage-tab--active{% endif %}">
+           All Matches
+        </a>
+        {% for stage in tournament_stages %}
+        <a href="{% url 'tournament:matches_list' %}?stage={{ stage.slug }}" 
+           class="stage-tab {% if active_stage_slug == stage.slug %}stage-tab--active{% endif %}">
+           {{ stage.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <hr class="divider" style="margin: 2rem 0; opacity: 0.1;" />
+
+    {% if upcoming_matches %}
+    <h3 class="card__title" style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Upcoming</h3>
+    <div class="matches-grid">
+        {% for match in upcoming_matches %}
+            {% include "tournament/partials/_match_card.html" with match=match %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if completed_matches %}
+    <h3 class="card__title" style="margin-top: {% if upcoming_matches %}3rem{% else %}0{% endif %}; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Completed</h3>
+    <div class="matches-grid">
+        {% for match in completed_matches %}
+            {% include "tournament/partials/_match_card.html" with match=match %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not upcoming_matches and not completed_matches %}
+    <div class="empty-state">
+        <span class="empty-state__icon">🗓️</span>
+        <p>No matches found.</p>
+    </div>
+    {% endif %}
+
+</section>
+{% endblock %}

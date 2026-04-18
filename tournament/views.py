@@ -119,6 +119,38 @@ def dashboard(request):
     return render(request, 'tournament/dashboard.html', context)
 
 
+def matches_list(request):
+    """View to list all matches with filter by stage."""
+    tournament = get_active_tournament()
+    
+    if not tournament:
+        return render(request, 'tournament/no_tournament.html', {})
+        
+    stage_slug = request.GET.get('stage')
+    
+    # Base queryset for all matches in this tournament
+    matches_qs = Match.objects.filter(stage__tournament=tournament).select_related(
+        'team1', 'team2', 'winner', 'stage', 'group'
+    ).order_by('stage__order', 'match_number')
+    
+    # Filter by stage if requested
+    if stage_slug:
+        matches_qs = matches_qs.filter(stage__slug=stage_slug)
+    
+    # Group matches by status for the template
+    completed_matches = [m for m in matches_qs if m.status == 'completed']
+    upcoming_matches = [m for m in matches_qs if m.status == 'upcoming']
+        
+    context = {
+        'tournament': tournament,
+        'completed_matches': completed_matches,
+        'upcoming_matches': upcoming_matches,
+        'active_stage_slug': stage_slug,
+        'active_page': 'matches_list',
+    }
+    return render(request, 'tournament/matches_list.html', context)
+
+
 def stage_detail(request, stage_slug):
     """
     Generic stage detail view — adapts based on stage_type:

@@ -38,6 +38,13 @@
                         📊 Dashboard
                     </a>
                 </li>
+                <li>
+                    <a href="{% url 'tournament:matches_list' %}"
+                        class="navbar__link {% if active_page == 'matches_list' %}navbar__link--active{% endif %}"
+                        id="nav-matches">
+                        🗓️ Matches
+                    </a>
+                </li>
                 {% for stage in tournament_stages %}
                 <li>
                     <a href="{% url 'tournament:stage_detail' stage_slug=stage.slug %}"
