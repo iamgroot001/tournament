@@ -12,7 +12,6 @@ venv/
 # Django
 db.sqlite3
 db*.sqlite3
-staticfiles/
 *.log
 
 # Node
