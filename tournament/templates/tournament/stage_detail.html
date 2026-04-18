@@ -1,0 +1,351 @@
+{% extends "tournament/base.html" %}
+{% load tournament_tags %}
+
+{% block title %}{{ stage.name }}{% endblock %}
+
+{% block content %}
+
+<!-- Stage Header -->
+<section class="section">
+    <div class="stage-header">
+        <div class="stage-header__info">
+            <h1 class="stage-header__title">
+                <span class="stage-header__emoji">{{ stage.emoji }}</span>
+                {{ stage.name }}
+            </h1>
+            <p class="stage-header__subtitle">
+                {% if stage.stage_type == 'group' %}
+                    {{ actual_teams }} teams in {{ actual_groups }} groups
+                    · {{ stage.matches_per_pairing }}x round-robin
+                    {% if stage.qualify_count %} · Top {{ stage.qualify_count }} per group qualify{% endif %}
+                {% elif stage.stage_type == 'round_robin' %}
+                    {{ actual_teams }} teams
+                    · {{ stage.matches_per_pairing }}x round-robin
+                    {% if stage.qualify_count %} · Top {{ stage.qualify_count }} qualify{% endif %}
+                {% elif stage.stage_type == 'knockout' %}
+                    {{ actual_teams }} teams · Knockout elimination
+                {% endif %}
+            </p>
+        </div>
+        <div class="stage-header__stats">
+            <span class="stage-header__completed">{{ completed_count }}</span>
+            <span class="stage-header__total">/ {{ total_matches_count }} matches{% if stage.stage_type == 'group' %} per group{% endif %}</span>
+        </div>
+    </div>
+</section>
+
+{% if stage.stage_type == 'group' %}
+<!-- ═══════════════════════════════════════════════════════════
+     GROUPED STAGE (Group Stage, Super 16, etc.)
+     ═══════════════════════════════════════════════════════════ -->
+
+{% if group_data %}
+<!-- Group Tabs -->
+<section class="section">
+    <div class="tabs" id="group-tabs" role="tablist">
+        {% for gd in group_data %}
+        <button class="tab-btn {% if gd.group.name == active_group %}tab-btn--active{% endif %}"
+                role="tab"
+                data-tab="group-{{ gd.group.name|slugify }}"
+                id="tab-{{ gd.group.name|slugify }}">
+            {{ gd.group.name }}
+            {% if gd.completed_count %}
+            <span class="tab-btn__badge">({{ gd.completed_count }}/{{ gd.total_matches }})</span>
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+</section>
+
+{% for gd in group_data %}
+<div class="tab-panel {% if gd.group.name == active_group %}tab-panel--active{% endif %}"
+     id="group-{{ gd.group.name|slugify }}">
+
+    <!-- Group Progress -->
+    <section class="section">
+        <div class="card">
+            <div class="card__header">
+                <div>
+                    <h2 class="card__title">{{ gd.group.name }}</h2>
+                    <p class="card__subtitle">{{ gd.entries|length }} teams · {{ gd.completed_count }} of {{ gd.total_matches }} matches completed</p>
+                </div>
+            </div>
+            <div class="progress-bar" style="margin-top: 0.75rem;">
+                <div class="progress-bar__fill" style="width: {{ gd.progress }}%"></div>
+            </div>
+            <span class="stage-card__progress-text" style="margin-top: 0.5rem; display: block;">Progress {{ gd.progress|floatformat:1 }}%</span>
+        </div>
+    </section>
+
+    <!-- Points Table -->
+    {% if gd.entries %}
+    <section class="section">
+        {% include "tournament/partials/_points_table.html" with entries=gd.entries group_name=gd.group.name qualify_count=stage.qualify_count %}
+    </section>
+    {% endif %}
+
+    <!-- Section Divider -->
+    {% if gd.completed_matches %}
+    <div class="section-divider"></div>
+
+    <!-- Completed Matches -->
+    <section class="section">
+        <h2 class="section__title">Completed Matches</h2>
+        <div class="match-grid">
+            {% for match in gd.completed_matches %}
+                {% include "tournament/partials/_match_card.html" with match=match %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Section Divider -->
+    {% if gd.upcoming_matches %}
+    <div class="section-divider"></div>
+
+    <!-- Upcoming Matches -->
+    <section class="section">
+        <h2 class="section__title">Upcoming Fixtures</h2>
+        <div class="match-grid">
+            {% for match in gd.upcoming_matches %}
+                {% include "tournament/partials/_match_card.html" with match=match %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not gd.entries and not gd.completed_matches and not gd.upcoming_matches %}
+    <section class="section" style="text-align: center; padding: 2rem;">
+        <p style="color: var(--text-muted);">No teams or fixtures added to {{ gd.group.name }} yet.</p>
+    </section>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% else %}
+<!-- No groups yet -->
+<section class="section" style="text-align: center; padding: 4rem 2rem;">
+    <p style="font-size: 3rem; margin-bottom: 1rem;">{{ stage.emoji }}</p>
+    <h2 style="margin-bottom: 0.5rem;">{{ stage.name }} — Coming Soon</h2>
+    <p style="color: var(--text-muted);">Groups and fixtures haven't been set up yet. Check back later!</p>
+</section>
+{% endif %}
+
+
+{% elif stage.stage_type == 'round_robin' %}
+<!-- ═══════════════════════════════════════════════════════════
+     FLAT ROUND ROBIN (Super 8, etc.)
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Progress -->
+<section class="section">
+    <div class="card">
+        <div class="card__header">
+            <div>
+                <h2 class="card__title">{{ stage.name }} Standings</h2>
+                <p class="card__subtitle">{{ completed_count }} of {{ total_matches_count }} matches completed</p>
+            </div>
+        </div>
+        <div class="progress-bar" style="margin-top: 0.75rem;">
+            <div class="progress-bar__fill" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+</section>
+
+{% if entries %}
+<section class="section">
+    {% include "tournament/partials/_points_table.html" with entries=entries group_name=stage.name qualify_count=stage.qualify_count %}
+</section>
+{% endif %}
+
+{% if completed_matches %}
+<div class="section-divider"></div>
+<section class="section">
+    <h2 class="section__title">Completed Matches</h2>
+    <div class="match-grid">
+        {% for match in completed_matches %}
+            {% include "tournament/partials/_match_card.html" with match=match %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if upcoming_matches %}
+<div class="section-divider"></div>
+<section class="section">
+    <h2 class="section__title">Upcoming Fixtures</h2>
+    <div class="match-grid">
+        {% for match in upcoming_matches %}
+            {% include "tournament/partials/_match_card.html" with match=match %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if not entries and not completed_matches and not upcoming_matches %}
+<section class="section" style="text-align: center; padding: 4rem 2rem;">
+    <p style="font-size: 3rem; margin-bottom: 1rem;">{{ stage.emoji }}</p>
+    <h2 style="margin-bottom: 0.5rem;">{{ stage.name }} — Coming Soon</h2>
+    <p style="color: var(--text-muted);">Matches haven't been scheduled yet. Check back later!</p>
+</section>
+{% endif %}
+
+
+{% elif stage.stage_type == 'knockout' %}
+<!-- ═══════════════════════════════════════════════════════════
+     KNOCKOUT / PLAYOFFS  (IPL-style bracket)
+     ═══════════════════════════════════════════════════════════ -->
+
+{% if playoff_bracket %}
+
+<!-- Road to the Final Bracket -->
+<section class="section">
+    <h2 class="section__title" style="text-align: center; justify-content: center; margin-bottom: var(--space-xl);">Road to the Final</h2>
+
+    <div class="playoff-bracket">
+        <!-- Full-bracket SVG overlay for ALL connector lines -->
+        <svg class="bracket-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <!-- Loser Q1 → Q2: from Q1 lower-right, turns down to center, enters Q2 left -->
+            <polyline points="30,32 32,32 32,50 34,50"
+                fill="none" stroke="#22d3ee" stroke-width="2" vector-effect="non-scaling-stroke"/>
+            <!-- Winner Elim → Q2: from Elim upper-right, turns up to center, enters Q2 left -->
+            <polyline points="30,68 32,68 32,50 34,50"
+                fill="none" stroke="#22d3ee" stroke-width="2" vector-effect="non-scaling-stroke"/>
+            <!-- Winner Q1 → Final: from Q1 upper-right, across the top, drops down to Final left -->
+            <polyline points="30,15 68,15 68,50 70,50"
+                fill="none" stroke="#f59e0b" stroke-width="2" vector-effect="non-scaling-stroke"/>
+            <!-- Winner Q2 → Final: from Q2 right edge to Final left edge -->
+            <polyline points="66,50 70,50"
+                fill="none" stroke="#f59e0b" stroke-width="2" vector-effect="non-scaling-stroke"/>
+        </svg>
+
+        <!-- HTML labels positioned over the SVG lines -->
+        <div class="bracket-line-labels">
+            <span class="bll bll--loser-q1">Loser Q1</span>
+            <span class="bll bll--winner-elim">Winner</span>
+            <span class="bll bll--winner-q1">Winner Q1</span>
+            <span class="bll bll--winner-q2">Winner Q2</span>
+        </div>
+
+        <!-- CARD: Qualifier 1 -->
+        <div class="playoff-slot playoff-slot--q1">
+            <div class="playoff-match">
+                <div class="playoff-match__label">Qualifier 1</div>
+                <div class="playoff-match__card {% if playoff_bracket.q1.status == 'completed' %}playoff-match__card--completed{% endif %}">
+                    <div class="playoff-match__seed">1<sup>st</sup> Place</div>
+                    <div class="playoff-match__team {% if playoff_bracket.q1.winner == playoff_bracket.q1.team1 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.q1.team1.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.q1.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.q1.team1_total }}/{{ playoff_bracket.q1.team1_wickets }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="playoff-match__vs">vs</div>
+                    <div class="playoff-match__seed">2<sup>nd</sup> Place</div>
+                    <div class="playoff-match__team {% if playoff_bracket.q1.winner == playoff_bracket.q1.team2 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.q1.team2.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.q1.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.q1.team2_total }}/{{ playoff_bracket.q1.team2_wickets }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: Eliminator -->
+        <div class="playoff-slot playoff-slot--elim">
+            <div class="playoff-match">
+                <div class="playoff-match__label">Eliminator</div>
+                <div class="playoff-match__card {% if playoff_bracket.eliminator.status == 'completed' %}playoff-match__card--completed{% endif %}">
+                    <div class="playoff-match__seed">3<sup>rd</sup> Place</div>
+                    <div class="playoff-match__team {% if playoff_bracket.eliminator.winner == playoff_bracket.eliminator.team1 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.eliminator.team1.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.eliminator.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.eliminator.team1_total }}/{{ playoff_bracket.eliminator.team1_wickets }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="playoff-match__vs">vs</div>
+                    <div class="playoff-match__seed">4<sup>th</sup> Place</div>
+                    <div class="playoff-match__team {% if playoff_bracket.eliminator.winner == playoff_bracket.eliminator.team2 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.eliminator.team2.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.eliminator.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.eliminator.team2_total }}/{{ playoff_bracket.eliminator.team2_wickets }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: Qualifier 2 -->
+        <div class="playoff-slot playoff-slot--q2">
+            <div class="playoff-match">
+                <div class="playoff-match__label">Qualifier 2</div>
+                <div class="playoff-match__card {% if playoff_bracket.q2.status == 'completed' %}playoff-match__card--completed{% endif %}">
+                    <div class="playoff-match__seed">Loser Q1</div>
+                    <div class="playoff-match__team {% if playoff_bracket.q2.status == 'completed' and playoff_bracket.q2.winner == playoff_bracket.q2.team1 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.q2.team1.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.q2.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.q2.team1_total }}/{{ playoff_bracket.q2.team1_wickets }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="playoff-match__vs">vs</div>
+                    <div class="playoff-match__seed">Winner Eliminator</div>
+                    <div class="playoff-match__team {% if playoff_bracket.q2.status == 'completed' and playoff_bracket.q2.winner == playoff_bracket.q2.team2 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.q2.team2.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.q2.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.q2.team2_total }}/{{ playoff_bracket.q2.team2_wickets }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: Final -->
+        <div class="playoff-slot playoff-slot--final">
+            <div class="playoff-match">
+                <div class="playoff-match__label playoff-match__label--final">🏆 Final</div>
+                <div class="playoff-match__card playoff-match__card--final {% if playoff_bracket.final.status == 'completed' %}playoff-match__card--completed{% endif %}">
+                    <div class="playoff-match__seed">Winner Q1</div>
+                    <div class="playoff-match__team {% if playoff_bracket.final.status == 'completed' and playoff_bracket.final.winner == playoff_bracket.final.team1 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.final.team1.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.final.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.final.team1_total }}/{{ playoff_bracket.final.team1_wickets }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="playoff-match__vs">vs</div>
+                    <div class="playoff-match__seed">Winner Q2</div>
+                    <div class="playoff-match__team {% if playoff_bracket.final.status == 'completed' and playoff_bracket.final.winner == playoff_bracket.final.team2 %}playoff-match__team--winner{% endif %}">
+                        <span>{{ playoff_bracket.final.team2.name|default:"TBD" }}</span>
+                        {% if playoff_bracket.final.status == 'completed' %}
+                        <span class="playoff-match__score">{{ playoff_bracket.final.team2_total }}/{{ playoff_bracket.final.team2_wickets }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if playoff_bracket.result_summary %}
+<div class="section-divider"></div>
+<section class="section" style="text-align: center;">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h2 class="card__title" style="justify-content: center;">🏆 Champion</h2>
+        <p style="font-size: 1.5rem; font-weight: 800; color: var(--accent-gold); margin-top: var(--space-md);">{{ playoff_bracket.result_summary }}</p>
+    </div>
+</section>
+{% endif %}
+
+{% else %}
+<!-- Awaiting teams -->
+<section class="section" style="text-align: center; padding: 4rem 2rem;">
+    <p style="font-size: 3rem; margin-bottom: 1rem;">🏆</p>
+    <h2 style="margin-bottom: 0.5rem;">Awaiting Previous Stage Results</h2>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+        The playoff bracket will be populated once the preceding stages are complete.
+    </p>
+</section>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

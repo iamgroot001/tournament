@@ -1,0 +1,74 @@
+{% load static %}{% load tournament_tags %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="{% if active_tournament %}{{ active_tournament.name }} {{ active_tournament.edition }} — Live standings, match results, and rankings.{% else %}Cricket tournament management platform.{% endif %}">
+    <title>{% block title %}{% if active_tournament %}{{ active_tournament.name }}{% else %}Cricket Tournament{% endif %}{% endblock %}</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏏</text></svg>">
+    <link rel="stylesheet" href="{% static 'tournament/css/styles.css' %}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar__inner">
+            <a href="{% url 'tournament:dashboard' %}" class="navbar__brand">
+                <span class="navbar__brand-icon">🏏</span>
+                {% if active_tournament %}
+                <span class="navbar__brand-text">{{ active_tournament.name }}</span>
+                <span class="navbar__edition">{{ active_tournament.edition }}</span>
+                {% else %}
+                <span class="navbar__brand-text">Cricket Tournament</span>
+                {% endif %}
+            </a>
+
+            <button class="navbar__toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
+            <ul class="navbar__nav">
+                <li>
+                    <a href="{% url 'tournament:dashboard' %}"
+                        class="navbar__link {% if active_page == 'dashboard' %}navbar__link--active{% endif %}"
+                        id="nav-dashboard">
+                        📊 Dashboard
+                    </a>
+                </li>
+                {% for stage in tournament_stages %}
+                <li>
+                    <a href="{% url 'tournament:stage_detail' stage_slug=stage.slug %}"
+                        class="navbar__link {% if active_page == stage.slug %}navbar__link--active{% endif %}"
+                        id="nav-{{ stage.slug }}">
+                        {{ stage.emoji }} {{ stage.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            {% if active_tournament %}
+            <span class="footer__brand">{{ active_tournament.name }} {{ active_tournament.edition }}</span>
+            {% else %}
+            <span class="footer__brand">Cricket Tournament</span>
+            {% endif %}
+        </p>
+    </footer>
+
+    <script src="{% static 'tournament/js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

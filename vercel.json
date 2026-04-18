@@ -1,0 +1,24 @@
+{
+    "builds": [
+        {
+            "src": "wcl26/wsgi.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "15mb",
+                "runtime": "python3.12"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/staticfiles/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "wcl26/wsgi.py"
+        }
+    ],
+    "buildCommand": "bash build_files.sh",
+    "outputDirectory": "staticfiles"
+}

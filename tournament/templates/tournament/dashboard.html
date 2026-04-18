@@ -1,0 +1,130 @@
+{% extends "tournament/base.html" %}
+{% load tournament_tags %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="hero" id="hero">
+    <div class="hero__content">
+        <h1 class="hero__title">{{ tournament.name }}</h1>
+        <p class="hero__subtitle">Edition {{ tournament.edition }}</p>
+    </div>
+</section>
+
+<!-- Tournament Stats -->
+<section class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+        <span class="stat-card__icon">👥</span>
+        <span class="stat-card__value" data-target="{{ total_teams }}">0</span>
+        <span class="stat-card__label">Teams</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon">🏏</span>
+        <span class="stat-card__value" data-target="{{ total_matches }}">0</span>
+        <span class="stat-card__label">Total Matches</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon">✅</span>
+        <span class="stat-card__value" data-target="{{ completed_matches }}">0</span>
+        <span class="stat-card__label">Completed</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon">📍</span>
+        <span class="stat-card__value stat-card__value--text">{{ current_stage }}</span>
+        <span class="stat-card__label">Current Stage</span>
+    </div>
+</section>
+
+<!-- Stage Navigation Cards -->
+<section class="section" id="stage-nav">
+    <h2 class="section__title">🗓️ Tournament Stages</h2>
+    <div class="stage-cards">
+        {% for item in stage_data %}
+        <a href="{% url 'tournament:stage_detail' stage_slug=item.stage.slug %}" class="stage-card stage-card--{{ item.status }}" id="stage-{{ item.stage.slug }}">
+            <div class="stage-card__header">
+                <span class="stage-card__emoji">{{ item.stage.emoji }}</span>
+                <h3 class="stage-card__title">{{ item.stage.name }}</h3>
+            </div>
+            <div class="stage-card__meta">
+                {% if item.actual_teams > 0 %}
+                    <span>{{ item.actual_teams }} teams</span>
+                    {% if item.actual_groups > 0 %}
+                    <span>· {{ item.actual_groups }} groups</span>
+                    {% endif %}
+                {% else %}
+                    <span class="stage-card__meta--pending">Awaiting teams</span>
+                {% endif %}
+            </div>
+            <div class="stage-card__progress">
+                <div class="progress-bar">
+                    <div class="progress-bar__fill" style="width: {{ item.progress }}%"></div>
+                </div>
+                <span class="stage-card__progress-text">{{ item.completed_matches }} / {{ item.total_matches }} matches</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Bottom Grid: Top Teams + Recent Results -->
+<section class="section" id="bottom-grid">
+    <div class="dashboard-grid">
+
+        <!-- Top Performers -->
+        <div class="card" id="top-performers">
+            <div class="card__header">
+                <h2 class="card__title">🏅 Top Performers</h2>
+                {% if stage_data %}
+                <a href="{% url 'tournament:stage_detail' stage_slug=stage_data.0.stage.slug %}" class="card__link">View all →</a>
+                {% endif %}
+            </div>
+            {% if top_teams %}
+            <div class="table-wrapper">
+                <table class="table table--compact">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>TEAM</th>
+                            <th>MP</th>
+                            <th>W</th>
+                            <th>PTS</th>
+                            <th>NRR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in top_teams %}
+                        <tr>
+                            <td><span class="rank-badge {% if forloop.counter <= 3 %}rank-badge--top{% endif %}">{{ forloop.counter }}</span></td>
+                            <td class="team-name"><span class="team-color-dot"></span>{{ entry.team.name }}</td>
+                            <td>{{ entry.played }}</td>
+                            <td>{{ entry.won }}</td>
+                            <td class="points-cell">{{ entry.points }}</td>
+                            <td class="nrr-cell">{{ entry.nrr|nrr_display }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="card__empty">No matches completed yet</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Results -->
+        <div class="card" id="recent-results">
+            <h2 class="card__title">🏏 Recent Results</h2>
+            {% if recent_matches %}
+                {% for match in recent_matches %}
+                    {% include "tournament/partials/_match_card.html" with match=match %}
+                {% endfor %}
+            {% else %}
+            <p class="card__empty">No completed matches yet</p>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

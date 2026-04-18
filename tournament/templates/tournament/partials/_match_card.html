@@ -1,0 +1,37 @@
+{% load tournament_tags %}
+<div class="match-card {% if match.status == 'completed' %}match-card--completed{% endif %}" id="match-{{ match.match_number }}">
+    <div class="match-card__header">
+        <span class="match-card__number">
+            {% if match.group %}{{ match.group.name }} &middot; {% endif %}Match #{{ match.match_number }}
+        </span>
+        <span class="match-card__status match-card__status--{{ match.status }}">
+            {% if match.status == 'completed' %}✓ Completed{% else %}⏳ Upcoming{% endif %}
+        </span>
+    </div>
+
+    <div class="match-card__teams">
+        <div class="match-card__team {% if match.status == 'completed' %}{% if match.winner == match.team1 %}match-card__team--winner{% else %}match-card__team--loser{% endif %}{% endif %}">
+            <div class="match-card__team-name">{{ match.team1.name }}</div>
+            {% if match.status == 'completed' %}
+            <div class="match-card__score">{{ match.team1_total }}/{{ match.team1_wickets }}</div>
+            <div class="match-card__overs">({{ match.team1_overs }} ov)</div>
+            {% endif %}
+        </div>
+
+        <div class="match-card__vs">VS</div>
+
+        <div class="match-card__team {% if match.status == 'completed' %}{% if match.winner == match.team2 %}match-card__team--winner{% else %}match-card__team--loser{% endif %}{% endif %}">
+            <div class="match-card__team-name">{{ match.team2.name }}</div>
+            {% if match.status == 'completed' %}
+            <div class="match-card__score">{{ match.team2_total }}/{{ match.team2_wickets }}</div>
+            <div class="match-card__overs">({{ match.team2_overs }} ov)</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if match.status == 'completed' %}
+    <div class="match-card__result">
+        {{ match.result_summary }}
+    </div>
+    {% endif %}
+</div>

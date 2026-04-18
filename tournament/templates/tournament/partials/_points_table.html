@@ -1,0 +1,56 @@
+{% load tournament_tags %}
+<div class="points-table-wrapper" id="pt-{{ group_name|default:'main' }}">
+    <div class="points-table-header">
+        <h3 class="points-table-header__title">
+            📊 {% if group_name %}{{ group_name }}{% else %}Standings{% endif %}
+        </h3>
+        {% if entries %}
+        <span class="points-table-header__badge">
+            {{ entries|length }} Teams
+        </span>
+        {% endif %}
+    </div>
+    <table class="points-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Team</th>
+                <th>MP</th>
+                <th>W</th>
+                <th>L</th>
+                <th>Pts</th>
+                <th>NRR</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr class="{% if entry.display_rank <= qualify_count %}qualified-zone{% endif %} {% if entry.display_rank == qualify_count %}qualification-line{% endif %}">
+                <td>
+                    <span class="rank-badge {% if entry.display_rank == 1 %}rank-badge--1{% elif entry.display_rank == 2 %}rank-badge--2{% elif entry.display_rank == 3 %}rank-badge--3{% endif %}">
+                        {{ entry.display_rank }}
+                    </span>
+                </td>
+                <td>
+                    <div class="team-name-cell">
+                        <span class="team-indicator {% if entry.display_rank <= qualify_count %}team-indicator--qualified{% endif %}"></span>
+                        {{ entry.team.name }}
+                    </div>
+                </td>
+                <td>{{ entry.played }}</td>
+                <td>{{ entry.won }}</td>
+                <td>{{ entry.lost }}</td>
+                <td><span class="points-value">{{ entry.points }}</span></td>
+                <td class="{% if entry.nrr > 0 %}nrr-positive{% elif entry.nrr < 0 %}nrr-negative{% else %}nrr-zero{% endif %}">
+                    {{ entry.nrr|nrr_display }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                    Standings will be updated once matches begin
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
