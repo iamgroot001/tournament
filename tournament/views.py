@@ -85,11 +85,18 @@ def dashboard(request):
             'actual_groups': actual_groups,
         })
 
-    if current_stage is None and completed_matches > 0:
-        first_stage = stages.first()
-        current_stage = first_stage.name if first_stage else 'Not Started'
-    elif current_stage is None:
-        current_stage = 'Not Started'
+    # Determine Active Stage accurately even when between stages
+    active_stage_obj = None
+    if current_stage:
+        active_stage_obj = next((s for s in stages if s.name == current_stage), None)
+    elif completed_matches > 0:
+        # Find the first upcoming stage or fallback to the last completed stage
+        active_stage_obj = next((s for s in stages if s.matches.filter(status='upcoming').exists()), stages.last())
+        if active_stage_obj:
+            current_stage = active_stage_obj.name
+    else:
+        active_stage_obj = stages.first()
+        current_stage = active_stage_obj.name if active_stage_obj else 'Not Started'
 
     # Recent completed matches
     recent_matches = Match.objects.filter(
@@ -97,13 +104,18 @@ def dashboard(request):
         status='completed',
     ).select_related('team1', 'team2', 'winner', 'batting_first', 'stage', 'group').order_by('-match_number')[:3]
 
-    # Top teams (from first stage's points table)
-    first_stage = stages.first()
+    # Top teams (dynamically filtered by the active stage)
     top_teams = PointsTableEntry.objects.none()
-    if first_stage:
+    limit = 12
+    if active_stage_obj:
+        if active_stage_obj.slug == 'super-8':
+            limit = 8
+        elif active_stage_obj.slug == 'playoffs':
+            limit = 4
+            
         top_teams = PointsTableEntry.objects.filter(
-            stage=first_stage
-        ).select_related('team').order_by('-points', '-nrr')[:12]
+            stage=active_stage_obj
+        ).select_related('team').order_by('-points', '-nrr')[:limit]
 
     context = {
         'tournament': tournament,
@@ -111,6 +123,7 @@ def dashboard(request):
         'total_matches': total_matches,
         'completed_matches': completed_matches,
         'current_stage': current_stage,
+        'active_stage_obj': active_stage_obj,
         'stage_data': stage_data,
         'recent_matches': recent_matches,
         'top_teams': top_teams,
