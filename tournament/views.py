@@ -103,7 +103,7 @@ def dashboard(request):
     if first_stage:
         top_teams = PointsTableEntry.objects.filter(
             stage=first_stage
-        ).select_related('team').order_by('-points', '-nrr')[:8]
+        ).select_related('team').order_by('-points', '-nrr')[:5]
 
     context = {
         'tournament': tournament,

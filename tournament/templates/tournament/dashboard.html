@@ -111,7 +111,10 @@
 
         <!-- Recent Results -->
         <div class="card" id="recent-results">
-            <h2 class="card__title">🏏 Recent Results</h2>
+            <div class="card__header">
+                <h2 class="card__title">🏏 Recent Results</h2>
+                <a href="{% url 'tournament:matches_list' %}" class="card__link">View all →</a>
+            </div>
             {% if recent_matches %}
                 {% for match in recent_matches %}
                     {% include "tournament/partials/_match_card.html" with match=match %}
