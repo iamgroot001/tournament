@@ -334,3 +334,16 @@ def migrate_db_view(request):
     except Exception as e:
         import traceback
         return HttpResponse(f"<pre>Migration failed:\n{traceback.format_exc()}</pre>", status=500)
+
+def debug_error_view(request):
+    try:
+        # Load dashboard logic directly to catch exception
+        tournament = get_active_tournament()
+        if tournament:
+            stages = list(tournament.stages.all())
+            matches = list(Match.objects.filter(stage__tournament=tournament))
+            return HttpResponse("<pre>Database query successful! No 500 error in dashboard logic.</pre>")
+        return HttpResponse("<pre>No active tournament, but queried successfully.</pre>")
+    except Exception as e:
+        import traceback
+        return HttpResponse(f"<pre>Error:\n{traceback.format_exc()}</pre>", status=500)
