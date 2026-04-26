@@ -77,6 +77,10 @@ class Tournament(models.Model):
         default=20,
         help_text="Maximum overs per innings for this tournament (e.g., 5, 10, 20)"
     )
+    max_wickets = models.IntegerField(
+        default=10,
+        help_text="Maximum wickets per innings for this tournament (e.g., 10)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -242,12 +246,13 @@ class Match(models.Model):
             batted_first = (self.batting_first == w)
         else:
             max_overs = self.stage.tournament.max_overs if self.stage_id else 20
-            batted_first = self._infer_winner_batted_first(w_wkts, w_ov, l_wkts, l_ov, max_overs)
+            max_wickets = self.stage.tournament.max_wickets if self.stage_id else 10
+            batted_first = self._infer_winner_batted_first(w_wkts, w_ov, l_wkts, l_ov, max_overs, max_wickets)
 
         if batted_first:
             return f"{w.name} won by {w_total - l_total} runs"
         else:
-            return f"{w.name} won by {10 - (w_wkts or 0)} wickets"
+            return f"{w.name} won by {max_wickets - (w_wkts or 0)} wickets"
 
     def _winner_loser_data(self):
         if self.team1_total >= self.team2_total:
@@ -257,13 +262,13 @@ class Match(models.Model):
                 self.team1, self.team1_total, self.team1_wickets, self.team1_overs)
 
     @staticmethod
-    def _infer_winner_batted_first(w_wkts, w_ov, l_wkts, l_ov, max_overs=20):
+    def _infer_winner_batted_first(w_wkts, w_ov, l_wkts, l_ov, max_overs=20, max_wickets=10):
         w_overs = parse_overs_to_float(w_ov)
-        if (w_wkts or 0) >= 10:
+        if (w_wkts or 0) >= max_wickets:
             return True
-        if w_overs < max_overs and (w_wkts or 0) < 10:
+        if w_overs < max_overs and (w_wkts or 0) < max_wickets:
             return False
-        if (l_wkts or 0) >= 10:
+        if (l_wkts or 0) >= max_wickets:
             return True
         return True
 
@@ -273,6 +278,7 @@ class Match(models.Model):
             return
             
         max_overs = self.stage.tournament.max_overs
+        max_wickets = self.stage.tournament.max_wickets
         
         if self.team1_overs:
             t1_ov = parse_overs_to_float(self.team1_overs)
@@ -280,6 +286,10 @@ class Match(models.Model):
                 raise ValidationError({
                     'team1_overs': f"{self.team1.name}'s overs ({self.team1_overs}) cannot exceed the tournament limit of {max_overs}."
                 })
+        if self.team1_wickets is not None and self.team1_wickets > max_wickets:
+            raise ValidationError({
+                'team1_wickets': f"{self.team1.name}'s wickets ({self.team1_wickets}) cannot exceed the tournament limit of {max_wickets}."
+            })
                 
         if self.team2_overs:
             t2_ov = parse_overs_to_float(self.team2_overs)
@@ -287,6 +297,10 @@ class Match(models.Model):
                 raise ValidationError({
                     'team2_overs': f"{self.team2.name}'s overs ({self.team2_overs}) cannot exceed the tournament limit of {max_overs}."
                 })
+        if self.team2_wickets is not None and self.team2_wickets > max_wickets:
+            raise ValidationError({
+                'team2_wickets': f"{self.team2.name}'s wickets ({self.team2_wickets}) cannot exceed the tournament limit of {max_wickets}."
+            })
 
     def save(self, *args, **kwargs):
         # Auto-detect completed status
@@ -330,22 +344,23 @@ class Match(models.Model):
         t1_ov = parse_overs_to_float(self.team1_overs)
         t2_ov = parse_overs_to_float(self.team2_overs)
         max_overs = self.stage.tournament.max_overs if self.stage_id else 20
+        max_wickets = self.stage.tournament.max_wickets if self.stage_id else 10
 
         if t1_t == t2_t:
             return self.team1
 
         if t1_t > t2_t:
             # Team1 won
-            if t1_w >= 10:
+            if t1_w >= max_wickets:
                 return self.team1  # All-out winner → batted first
-            if t1_ov < max_overs and t1_w < 10:
+            if t1_ov < max_overs and t1_w < max_wickets:
                 return self.team2  # Winner chased → other team batted first
             return self.team1
         else:
             # Team2 won
-            if t2_w >= 10:
+            if t2_w >= max_wickets:
                 return self.team2
-            if t2_ov < max_overs and t2_w < 10:
+            if t2_ov < max_overs and t2_w < max_wickets:
                 return self.team1
             return self.team2
 
@@ -477,10 +492,11 @@ def recompute_points_table(stage):
         t2_balls = cricket_overs_to_balls(m.team2_overs) or 0
 
         full_quota_balls = (stage.tournament.max_overs if stage.tournament else 20) * 6
+        max_wickets = stage.tournament.max_wickets if stage.tournament else 10
 
         # NRR: all-out teams use full quota
-        t1_nrr_balls = full_quota_balls if t1_wkts >= 10 else t1_balls
-        t2_nrr_balls = full_quota_balls if t2_wkts >= 10 else t2_balls
+        t1_nrr_balls = full_quota_balls if t1_wkts >= max_wickets else t1_balls
+        t2_nrr_balls = full_quota_balls if t2_wkts >= max_wickets else t2_balls
 
         s1['runs_for'] += t1_runs
         s1['runs_against'] += t2_runs

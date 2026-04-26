@@ -39,7 +39,7 @@ class GroupMembershipInline(admin.TabularInline):
 
 @admin.register(Tournament)
 class TournamentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'edition', 'max_overs', 'is_active_badge', 'stages_list', 'team_count', 'created_at']
+    list_display = ['name', 'edition', 'max_overs', 'max_wickets', 'is_active_badge', 'stages_list', 'team_count', 'created_at']
     list_filter = ['is_active']
     search_fields = ['name', 'edition']
     inlines = [TournamentStageInline]
