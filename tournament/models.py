@@ -13,6 +13,7 @@ Key design:
 import random
 from collections import defaultdict
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 def parse_overs_to_float(overs_str):
@@ -265,6 +266,27 @@ class Match(models.Model):
         if (l_wkts or 0) >= 10:
             return True
         return True
+
+    def clean(self):
+        super().clean()
+        if not self.stage_id:
+            return
+            
+        max_overs = self.stage.tournament.max_overs
+        
+        if self.team1_overs:
+            t1_ov = parse_overs_to_float(self.team1_overs)
+            if t1_ov > max_overs:
+                raise ValidationError({
+                    'team1_overs': f"{self.team1.name}'s overs ({self.team1_overs}) cannot exceed the tournament limit of {max_overs}."
+                })
+                
+        if self.team2_overs:
+            t2_ov = parse_overs_to_float(self.team2_overs)
+            if t2_ov > max_overs:
+                raise ValidationError({
+                    'team2_overs': f"{self.team2.name}'s overs ({self.team2_overs}) cannot exceed the tournament limit of {max_overs}."
+                })
 
     def save(self, *args, **kwargs):
         # Auto-detect completed status
