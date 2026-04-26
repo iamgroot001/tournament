@@ -242,11 +242,12 @@ class Match(models.Model):
 
         w, w_total, w_wkts, w_ov, l, l_total, l_wkts, l_ov = self._winner_loser_data()
 
+        max_overs = self.stage.tournament.max_overs if self.stage_id else 20
+        max_wickets = self.stage.tournament.max_wickets if self.stage_id else 10
+
         if self.batting_first:
             batted_first = (self.batting_first == w)
         else:
-            max_overs = self.stage.tournament.max_overs if self.stage_id else 20
-            max_wickets = self.stage.tournament.max_wickets if self.stage_id else 10
             batted_first = self._infer_winner_batted_first(w_wkts, w_ov, l_wkts, l_ov, max_overs, max_wickets)
 
         if batted_first:
