@@ -320,3 +320,17 @@ def stage_detail(request, stage_slug):
         })
 
     return render(request, 'tournament/stage_detail.html', context)
+
+from django.http import HttpResponse
+from django.core.management import call_command
+from io import StringIO
+
+def migrate_db_view(request):
+    """Temporary endpoint to trigger migrations on Vercel manually."""
+    try:
+        out = StringIO()
+        call_command('migrate', interactive=False, stdout=out, stderr=out)
+        return HttpResponse(f"<pre>Migrate output:\n{out.getvalue()}</pre>")
+    except Exception as e:
+        import traceback
+        return HttpResponse(f"<pre>Migration failed:\n{traceback.format_exc()}</pre>", status=500)
