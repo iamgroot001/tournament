@@ -73,8 +73,8 @@
         <div class="card" id="top-performers">
             <div class="card__header">
                 <h2 class="card__title">🏅 Top Performers</h2>
-                {% if stage_data %}
-                <a href="{% url 'tournament:stage_detail' stage_slug=stage_data.0.stage.slug %}" class="card__link">View all →</a>
+                {% if active_stage_obj %}
+                <a href="{% url 'tournament:stage_detail' stage_slug=active_stage_obj.slug %}" class="card__link">View all →</a>
                 {% endif %}
             </div>
             {% if top_teams %}
