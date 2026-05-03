@@ -26,19 +26,19 @@
 
     <hr class="divider" style="margin: 2rem 0; opacity: 0.1;" />
 
-    {% if upcoming_matches %}
-    <h3 class="card__title" style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Upcoming</h3>
+    {% if completed_matches %}
+    <h3 class="card__title" style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Completed</h3>
     <div class="matches-grid">
-        {% for match in upcoming_matches %}
+        {% for match in completed_matches %}
             {% include "tournament/partials/_match_card.html" with match=match %}
         {% endfor %}
     </div>
     {% endif %}
 
-    {% if completed_matches %}
-    <h3 class="card__title" style="margin-top: {% if upcoming_matches %}3rem{% else %}0{% endif %}; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Completed</h3>
+    {% if upcoming_matches %}
+    <h3 class="card__title" style="margin-top: {% if completed_matches %}3rem{% else %}0{% endif %}; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Upcoming</h3>
     <div class="matches-grid">
-        {% for match in completed_matches %}
+        {% for match in upcoming_matches %}
             {% include "tournament/partials/_match_card.html" with match=match %}
         {% endfor %}
     </div>
