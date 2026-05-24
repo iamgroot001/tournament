@@ -198,10 +198,14 @@ class Match(models.Model):
     team1_total = models.IntegerField(null=True, blank=True, help_text="Team 1 total runs")
     team1_overs = models.CharField(max_length=10, blank=True, default='', help_text="e.g., 20, 19.3")
     team1_wickets = models.IntegerField(null=True, blank=True, help_text="Team 1 wickets lost")
+    team1_super_over_runs = models.IntegerField(null=True, blank=True, help_text="Team 1 Super Over runs")
+    team1_super_over_wickets = models.IntegerField(null=True, blank=True, help_text="Team 1 Super Over wickets")
 
     team2_total = models.IntegerField(null=True, blank=True, help_text="Team 2 total runs")
     team2_overs = models.CharField(max_length=10, blank=True, default='', help_text="e.g., 20, 19.3")
     team2_wickets = models.IntegerField(null=True, blank=True, help_text="Team 2 wickets lost")
+    team2_super_over_runs = models.IntegerField(null=True, blank=True, help_text="Team 2 Super Over runs")
+    team2_super_over_wickets = models.IntegerField(null=True, blank=True, help_text="Team 2 Super Over wickets")
 
     status = models.CharField(max_length=20, choices=MATCH_STATUS_CHOICES, default='upcoming')
     winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches_won')
@@ -228,8 +232,17 @@ class Match(models.Model):
     def is_tie(self):
         if not self.is_completed:
             return False
-        return (self.team1_total is not None and self.team2_total is not None
-                and self.team1_total == self.team2_total)
+            
+        main_tied = (self.team1_total is not None and self.team2_total is not None
+                     and self.team1_total == self.team2_total)
+                     
+        if not main_tied:
+            return False
+            
+        if self.team1_super_over_runs is not None and self.team2_super_over_runs is not None:
+            return self.team1_super_over_runs == self.team2_super_over_runs
+            
+        return True
 
     @property
     def result_summary(self):
@@ -241,6 +254,9 @@ class Match(models.Model):
             return "Result TBD"
 
         w, w_total, w_wkts, w_ov, l, l_total, l_wkts, l_ov = self._winner_loser_data()
+
+        if self.team1_total == self.team2_total:
+            return f"{w.name} won in Super Over"
 
         max_overs = self.stage.tournament.max_overs if self.stage_id else 20
         max_wickets = self.stage.tournament.max_wickets if self.stage_id else 10
@@ -315,7 +331,15 @@ class Match(models.Model):
             elif self.team2_total > self.team1_total:
                 self.winner = self.team2
             else:
-                self.winner = None  # tie
+                if self.team1_super_over_runs is not None and self.team2_super_over_runs is not None:
+                    if self.team1_super_over_runs > self.team2_super_over_runs:
+                        self.winner = self.team1
+                    elif self.team2_super_over_runs > self.team1_super_over_runs:
+                        self.winner = self.team2
+                    else:
+                        self.winner = None
+                else:
+                    self.winner = None  # tie
 
             # Auto-infer batting order if not set
             if not self.batting_first_id:
@@ -518,10 +542,25 @@ def recompute_points_table(stage):
             s2['points'] += WIN_POINTS
             s1['lost'] += 1
         else:
-            s1['tied'] += 1
-            s2['tied'] += 1
-            s1['points'] += TIE_POINTS
-            s2['points'] += TIE_POINTS
+            if m.team1_super_over_runs is not None and m.team2_super_over_runs is not None:
+                if m.team1_super_over_runs > m.team2_super_over_runs:
+                    s1['won'] += 1
+                    s1['points'] += WIN_POINTS
+                    s2['lost'] += 1
+                elif m.team2_super_over_runs > m.team1_super_over_runs:
+                    s2['won'] += 1
+                    s2['points'] += WIN_POINTS
+                    s1['lost'] += 1
+                else:
+                    s1['tied'] += 1
+                    s2['tied'] += 1
+                    s1['points'] += TIE_POINTS
+                    s2['points'] += TIE_POINTS
+            else:
+                s1['tied'] += 1
+                s2['tied'] += 1
+                s1['points'] += TIE_POINTS
+                s2['points'] += TIE_POINTS
 
     def calc_nrr(s):
         if s['overs_faced_balls'] <= 0 or s['overs_bowled_balls'] <= 0:

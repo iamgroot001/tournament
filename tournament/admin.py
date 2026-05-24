@@ -205,11 +205,11 @@ class MatchAdmin(admin.ModelAdmin):
             'fields': ('team1', 'team2')
         }),
         ('Team 1 Score', {
-            'fields': ('team1_total', 'team1_overs', 'team1_wickets'),
+            'fields': ('team1_total', 'team1_overs', 'team1_wickets', 'team1_super_over_runs', 'team1_super_over_wickets'),
             'description': 'Enter score to mark match as completed. Winner, status, and batting order are auto-detected.'
         }),
         ('Team 2 Score', {
-            'fields': ('team2_total', 'team2_overs', 'team2_wickets'),
+            'fields': ('team2_total', 'team2_overs', 'team2_wickets', 'team2_super_over_runs', 'team2_super_over_wickets'),
         }),
         ('Media & Links', {
             'fields': ('video_url',)

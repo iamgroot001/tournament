@@ -15,6 +15,9 @@
             {% if match.status == 'completed' %}
             <div class="match-card__score">{{ match.team1_total }}/{{ match.team1_wickets }}</div>
             <div class="match-card__overs">({{ match.team1_overs }} ov)</div>
+            {% if match.team1_super_over_runs is not None %}
+            <div class="match-card__score" style="font-size: 0.8em; margin-top: 4px; color: #f59e0b;">SO: {{ match.team1_super_over_runs }}/{{ match.team1_super_over_wickets }}</div>
+            {% endif %}
             {% endif %}
         </div>
 
@@ -25,6 +28,9 @@
             {% if match.status == 'completed' %}
             <div class="match-card__score">{{ match.team2_total }}/{{ match.team2_wickets }}</div>
             <div class="match-card__overs">({{ match.team2_overs }} ov)</div>
+            {% if match.team2_super_over_runs is not None %}
+            <div class="match-card__score" style="font-size: 0.8em; margin-top: 4px; color: #f59e0b;">SO: {{ match.team2_super_over_runs }}/{{ match.team2_super_over_wickets }}</div>
+            {% endif %}
             {% endif %}
         </div>
     </div>
