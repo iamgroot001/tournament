@@ -7,9 +7,13 @@
     <div class="card__header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <h2 class="section__title" style="margin-bottom: 0;">🗓️ Tournament Fixtures</h2>
         {% if completed_matches %}
-        <button id="toggle-completed-btn" class="tab-btn" style="cursor: pointer; background-color: var(--surface); border: 1px solid var(--border); font-size: 0.85rem;" onclick="toggleCompletedMatches()">
-            👁️ Hide Completed
-        </button>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Hide Completed</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-completed-checkbox" onchange="toggleCompletedMatches()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
         {% endif %}
     </div>
 
@@ -62,31 +66,77 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+/* Toggle Switch Styles */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: .3s;
+  border-radius: 24px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+input:checked + .toggle-slider {
+  background-color: #4ade80;
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+</style>
 <script>
 function toggleCompletedMatches() {
     var container = document.getElementById('completed-matches-container');
-    var btn = document.getElementById('toggle-completed-btn');
-    if (!container || !btn) return;
+    var checkbox = document.getElementById('toggle-completed-checkbox');
+    if (!container || !checkbox) return;
     
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        btn.innerHTML = '👁️ Hide Completed';
-        localStorage.setItem('hideCompleted', 'false');
-    } else {
+    if (checkbox.checked) {
         container.style.display = 'none';
-        btn.innerHTML = '👁️ Show Completed';
         localStorage.setItem('hideCompleted', 'true');
+    } else {
+        container.style.display = 'block';
+        localStorage.setItem('hideCompleted', 'false');
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     var hideCompleted = localStorage.getItem('hideCompleted');
+    var container = document.getElementById('completed-matches-container');
+    var checkbox = document.getElementById('toggle-completed-checkbox');
+    
     if (hideCompleted === 'true') {
-        var container = document.getElementById('completed-matches-container');
-        var btn = document.getElementById('toggle-completed-btn');
-        if (container && btn) {
+        if (container && checkbox) {
             container.style.display = 'none';
-            btn.innerHTML = '👁️ Show Completed';
+            checkbox.checked = true;
+        }
+    } else {
+        if (checkbox) {
+            checkbox.checked = false;
         }
     }
 });
