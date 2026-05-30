@@ -4,8 +4,13 @@
 
 {% block content %}
 <section class="section">
-    <div class="card__header">
+    <div class="card__header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <h2 class="section__title" style="margin-bottom: 0;">🗓️ Tournament Fixtures</h2>
+        {% if completed_matches %}
+        <button id="toggle-completed-btn" class="tab-btn" style="cursor: pointer; background-color: var(--surface); border: 1px solid var(--border); font-size: 0.85rem;" onclick="toggleCompletedMatches()">
+            👁️ Hide Completed
+        </button>
+        {% endif %}
     </div>
 
     <!-- Stage Filter Pills -->
@@ -27,11 +32,13 @@
     <hr class="divider" style="margin: 2rem 0; opacity: 0.1;" />
 
     {% if completed_matches %}
-    <h3 class="card__title" style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Completed</h3>
-    <div class="matches-grid">
-        {% for match in completed_matches %}
-            {% include "tournament/partials/_match_card.html" with match=match %}
-        {% endfor %}
+    <div id="completed-matches-container">
+        <h3 class="card__title" style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;">Completed</h3>
+        <div class="matches-grid">
+            {% for match in completed_matches %}
+                {% include "tournament/partials/_match_card.html" with match=match %}
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 
@@ -52,4 +59,36 @@
     {% endif %}
 
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCompletedMatches() {
+    var container = document.getElementById('completed-matches-container');
+    var btn = document.getElementById('toggle-completed-btn');
+    if (!container || !btn) return;
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.innerHTML = '👁️ Hide Completed';
+        localStorage.setItem('hideCompleted', 'false');
+    } else {
+        container.style.display = 'none';
+        btn.innerHTML = '👁️ Show Completed';
+        localStorage.setItem('hideCompleted', 'true');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var hideCompleted = localStorage.getItem('hideCompleted');
+    if (hideCompleted === 'true') {
+        var container = document.getElementById('completed-matches-container');
+        var btn = document.getElementById('toggle-completed-btn');
+        if (container && btn) {
+            container.style.display = 'none';
+            btn.innerHTML = '👁️ Show Completed';
+        }
+    }
+});
+</script>
 {% endblock %}
